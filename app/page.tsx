@@ -26,6 +26,8 @@ interface RetirementYear {
   endBalance: number;
 }
 
+const RETIREMENT_AGE = 90;
+
 export default function Page() {
   const [currency, setCurrency] = useState<Currency>("INR");
 
@@ -151,22 +153,49 @@ export default function Page() {
     setSipError(null);
 
     // Step 1: Calculate required corpus at retirement
-    // We need to find the corpus that will last until age 90 with the given withdrawal and returns
-    const yearsInRetirement = 90 - sipInputs.retirementAge;
-    const targetAge = 90;
-
-    // Calculate the corpus needed at retirement using present value of annuity formula
-    // considering inflation-adjusted withdrawals
-    let calculatedCorpus = 0;
-    let testExpense = sipInputs.annualExpense;
+    // We need to find the corpus that will last through age 90 (inclusive)
+    // If retiring at 60, need withdrawals for: 60, 61, 62, ..., 89, 90 = 31 years
+    const yearsInRetirement = RETIREMENT_AGE - sipInputs.retirementAge + 1;
+    const targetAge = RETIREMENT_AGE;
     const postRetirementRate = sipInputs.expectedReturnAfterRetirement / 100;
     const inflationRate = sipInputs.expectedInflation / 100;
 
-    // Calculate using year-by-year simulation to be accurate
-    for (let year = 0; year < yearsInRetirement; year++) {
-      const discountFactor = Math.pow(1 + postRetirementRate, year + 1);
-      calculatedCorpus += testExpense / discountFactor;
-      testExpense *= 1 + inflationRate;
+    // Use binary search to find the exact corpus needed
+    // This ensures the corpus can handle all withdrawals through age 90
+    let minCorpus = 0;
+    let maxCorpus = sipInputs.annualExpense * yearsInRetirement * 10; // Upper bound estimate
+    let calculatedCorpus = 0;
+
+    // Binary search with precision of 1000 (within 1000 units of currency)
+    while (maxCorpus - minCorpus > 1000) {
+      const midCorpus = (minCorpus + maxCorpus) / 2;
+
+      // Simulate withdrawal phase with this corpus
+      let testCorpus = midCorpus;
+      let testExpense = sipInputs.annualExpense;
+      let yearsCompleted = 0;
+
+      for (let year = 0; year < yearsInRetirement; year++) {
+        // Check if we can make this year's withdrawal
+        if (testCorpus < testExpense) {
+          // Cannot complete this year's withdrawal
+          break;
+        }
+        testCorpus -= testExpense;
+        const interest = testCorpus * postRetirementRate;
+        testCorpus += interest;
+        testExpense *= 1 + inflationRate;
+        yearsCompleted++;
+      }
+
+      if (yearsCompleted >= yearsInRetirement) {
+        // This corpus successfully handled all withdrawals through age 90
+        maxCorpus = midCorpus;
+        calculatedCorpus = midCorpus;
+      } else {
+        // This corpus is not enough
+        minCorpus = midCorpus;
+      }
     }
 
     setRequiredCorpus(calculatedCorpus);
@@ -236,9 +265,9 @@ export default function Page() {
       currentAge++;
     }
 
-    // Withdrawal Phase
+    // Withdrawal Phase - continue through age 90 (inclusive)
     let currentExpense = sipInputs.annualExpense;
-    while (currentCorpus > 0 && currentAge < targetAge) {
+    while (currentCorpus > 0 && currentAge <= targetAge) {
       const withdrawal = Math.min(currentExpense, currentCorpus);
       currentCorpus -= withdrawal;
 
@@ -328,7 +357,9 @@ export default function Page() {
                   yearsToRetirement={
                     sipInputs.retirementAge - sipInputs.currentAge
                   }
-                  retirementDuration={90 - sipInputs.retirementAge}
+                  retirementDuration={
+                    RETIREMENT_AGE - sipInputs.retirementAge + 1
+                  }
                 />
               </div>
             )}

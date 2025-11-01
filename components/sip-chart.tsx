@@ -123,9 +123,9 @@ export default function SIPChart({ data, currency }: SIPChartProps) {
           <YAxis
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(value) =>
-              `${(value / (currency === "INR" ? 1_00_00_000 : 1_000_000)).toFixed(1)} ${
-                currency === "INR" ? "Cr" : "M"
-              }`
+              `${(
+                value / (currency === "INR" ? 1_00_00_000 : 1_000_000)
+              ).toFixed(1)} ${currency === "INR" ? "Cr" : "M"}`
             }
             label={{
               value: "Amount",
@@ -182,4 +182,3 @@ export default function SIPChart({ data, currency }: SIPChartProps) {
     </Card>
   );
 }
-
