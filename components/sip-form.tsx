@@ -10,6 +10,7 @@ export interface SIPInputs {
   currentAge: number;
   retirementAge: number;
   annualExpense: number;
+  currentCorpus: number;
   expectedInflation: number;
   expectedReturnDuringInvestment: number;
   expectedReturnAfterRetirement: number;
@@ -142,6 +143,33 @@ export default function SIPForm({
           <p className="text-xs text-muted-foreground">
             Expected annual expenses at retirement (
             {formatCurrency(inputs.annualExpense, currency)} {currency})
+          </p>
+        </div>
+
+        {/* Current Corpus */}
+        <div className="space-y-2">
+          <Label
+            className="text-sm font-medium text-foreground"
+            htmlFor="currentCorpus"
+          >
+            Current Corpus (Optional)
+          </Label>
+          <div className="flex items-center gap-2">
+            <span className="text-foreground">
+              {CURRENCIES[currency].symbol}
+            </span>
+            <Input
+              id="currentCorpus"
+              type="number"
+              value={inputs.currentCorpus === 0 ? "" : inputs.currentCorpus}
+              onChange={(e) => handleChange("currentCorpus", e.target.value)}
+              className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+              placeholder="0"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Existing retirement savings (
+            {formatCurrency(inputs.currentCorpus, currency)} {currency})
           </p>
         </div>
 

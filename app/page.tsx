@@ -46,6 +46,7 @@ export default function Page() {
     currentAge: 30,
     retirementAge: 60,
     annualExpense: 12_00_000,
+    currentCorpus: 0,
     expectedInflation: 6,
     expectedReturnDuringInvestment: 12,
     expectedReturnAfterRetirement: 8,
@@ -130,6 +131,10 @@ export default function Page() {
       setSipError("Annual Expense must be greater than 0");
       return;
     }
+    if (sipInputs.currentCorpus < 0) {
+      setSipError("Current Corpus cannot be negative");
+      return;
+    }
     if (sipInputs.expectedInflation < 0) {
       setSipError("Expected Inflation cannot be negative");
       return;
@@ -171,23 +176,36 @@ export default function Page() {
     const monthsToRetirement = yearsToRetirement * 12;
     const monthlyRate = sipInputs.expectedReturnDuringInvestment / 100 / 12;
 
+    // Calculate future value of existing corpus
+    const futureValueOfCurrentCorpus =
+      sipInputs.currentCorpus * Math.pow(1 + monthlyRate, monthsToRetirement);
+
+    // Remaining corpus needed after current corpus grows
+    const remainingCorpusNeeded = Math.max(
+      0,
+      calculatedCorpus - futureValueOfCurrentCorpus
+    );
+
     // Using Future Value of SIP formula: FV = P × [(1 + r)^n - 1] / r × (1 + r)
     // Solving for P: P = FV × r / [(1 + r)^n - 1] / (1 + r)
     let calculatedMonthlySIP = 0;
-    if (monthlyRate === 0) {
-      calculatedMonthlySIP = calculatedCorpus / monthsToRetirement;
-    } else {
-      const numerator = calculatedCorpus * monthlyRate;
-      const denominator =
-        (Math.pow(1 + monthlyRate, monthsToRetirement) - 1) * (1 + monthlyRate);
-      calculatedMonthlySIP = numerator / denominator;
+    if (remainingCorpusNeeded > 0) {
+      if (monthlyRate === 0) {
+        calculatedMonthlySIP = remainingCorpusNeeded / monthsToRetirement;
+      } else {
+        const numerator = remainingCorpusNeeded * monthlyRate;
+        const denominator =
+          (Math.pow(1 + monthlyRate, monthsToRetirement) - 1) *
+          (1 + monthlyRate);
+        calculatedMonthlySIP = numerator / denominator;
+      }
     }
 
     setMonthlySIP(calculatedMonthlySIP);
 
     // Step 3: Generate year-by-year data
     const yearData: SIPYear[] = [];
-    let currentCorpus = 0;
+    let currentCorpus = sipInputs.currentCorpus;
     let currentYear = 1;
     let currentAge = sipInputs.currentAge;
 
