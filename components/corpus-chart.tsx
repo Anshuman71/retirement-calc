@@ -46,15 +46,20 @@ export default function CorpusChart({ data, currency }: CorpusChartProps) {
             <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
-                stopColor="hsl(var(--primary))"
+                stopColor="#16a34a"
                 stopOpacity={0.3}
               />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" />
+          <XAxis 
+            dataKey="year" 
+            stroke="hsl(var(--muted-foreground))"
+            axisLine={{ stroke: "hsl(var(--muted-foreground))" }}
+          />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
+            axisLine={{ stroke: "hsl(var(--muted-foreground))" }}
             tickFormatter={(value) =>
               `${value / (currency === "INR" ? 1_00_00_000 : 1_000_000)} ${
                 currency === "INR" ? "Cr" : "M"
@@ -74,7 +79,8 @@ export default function CorpusChart({ data, currency }: CorpusChartProps) {
           <Area
             type="monotone"
             dataKey="balance"
-            stroke="hsl(var(--primary))"
+            stroke="#16a34a"
+            strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorBalance)"
           />

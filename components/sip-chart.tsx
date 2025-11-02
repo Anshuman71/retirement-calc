@@ -114,6 +114,7 @@ export default function SIPChart({ data, currency }: SIPChartProps) {
           <XAxis
             dataKey="year"
             stroke="hsl(var(--muted-foreground))"
+            axisLine={{ stroke: "hsl(var(--muted-foreground))" }}
             label={{
               value: "Year",
               position: "insideBottom",
@@ -122,6 +123,7 @@ export default function SIPChart({ data, currency }: SIPChartProps) {
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
+            axisLine={{ stroke: "hsl(var(--muted-foreground))" }}
             tickFormatter={(value) =>
               `${(
                 value / (currency === "INR" ? 1_00_00_000 : 1_000_000)
